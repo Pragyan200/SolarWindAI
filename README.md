@@ -1,2 +1,2 @@
 # SolarWindAI
-AI powered renewable energy planning platform
+AI powered renewable energy planning platform.
