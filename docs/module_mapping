@@ -1,0 +1,61 @@
+##Module Resposibility Mapping
+
+This document describes the responsibility of each module in the Renewable Energy Prediction System.
+
+
+Modules Included:--
+
+##Authentication
+-User registration
+-User login
+-User authentication
+-User account management
+
+
+##Solar Prediction
+-Process solar data
+-Predict solar energy generation
+-Store prediction results
+-Support solar Analysis
+
+
+##Wind Prediction
+-Process wind data
+-Predict wind energy generation
+-Store prediction results
+-Support wind analysis
+
+
+##Site suitability
+-Analyze Enviromental data
+-Calculate suitability score
+-Rank sites
+-Recommend best locations
+
+
+##Database
+-Store project data
+-Manage database tables
+-retrive required information
+-maintain data integrity
+
+
+##Reports
+-Generate project reports
+-Export reports
+-Summarize prediction results
+-Store report history
+
+
+##Dashboard
+-Display project information
+-show prediction results
+-Visualize charts and graphs
+-Monitor system status
+
+
+##API Services
+-Connect Frontend and Backend
+-Handle API requests
+-Exchange data between Modules
+-Integrate external datasets and services
