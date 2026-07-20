@@ -9,14 +9,10 @@ from app.models.project import Project
 router=APIRouter()
 
 @router.get("/projects")
-def get_projects():
-    return[
-        {
-            "id":1,
-            "project_name":"Odisha Solar Farm",
-            "status":"Created"
-        }
-    ]
+def get_projects(db:Session=
+Depends(get_db)):
+    projects=db.query(Project).all()
+    return projects
 
 
 @router.post("/project")
