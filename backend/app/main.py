@@ -3,6 +3,7 @@ from app.api.home import router as home_router
 from app.api.projects import router as projects_router
 from app.api.sites import router as sites_router
 from app.api.features import router as feature_router
+from app.api.solar import router as solar_router
 
 
 from app.database.database import Base,engine
@@ -16,6 +17,7 @@ app.include_router(home_router)
 app.include_router(projects_router)
 app.include_router(sites_router)
 app.include_router(feature_router)
+app.include_router(solar_router)
 
 @app.get("/health")
 def health():
