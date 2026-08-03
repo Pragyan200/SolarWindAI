@@ -8,8 +8,9 @@ class NASAPowerClient:
     """Client for accessing NASA POWER data."""
 
     def get_solar_data(self, latitude: float, longitude: float):
+
         params = {
-            "parameters": "ALLSKY_SFC_SW_DWN,T2M,RH2M",
+            "parameters": "ALLSKY_SFC_SW_DWN,T2M,RH2M,WS50M",
             "community": "RE",
             "longitude": longitude,
             "latitude": latitude,
@@ -31,10 +32,19 @@ class NASAPowerClient:
 
             parameters = data["properties"]["parameter"]
 
+            def average(values):
+                numeric = [
+                    float(v)
+                    for v in values.values()
+                    if v is not None and v >= 0
+                ]
+                return sum(numeric) / len(numeric)
+
             return {
-                "solar_irradiance": parameters["ALLSKY_SFC_SW_DWN"],
-                "temperature": parameters["T2M"],
-                "relative_humidity": parameters["RH2M"]
+                "solar_irradiance": average(parameters["ALLSKY_SFC_SW_DWN"]),
+                "temperature": average(parameters["T2M"]),
+                "relative_humidity": average(parameters["RH2M"]),
+                "wind_speed_50m": average(parameters["WS50M"])
             }
 
         except RequestException as e:

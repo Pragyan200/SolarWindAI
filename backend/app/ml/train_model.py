@@ -1,127 +1,108 @@
 import pandas as pd
+import os
 import joblib
+import numpy as np
 
 from sklearn.model_selection import train_test_split
-from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+
+
+# Dataset path
+data_path = "datasets/ml/training_data.csv"
+
+# Model save path
+model_path = "backend/app/ml/random_forest_energy_model.pkl"
+
 
 print("Loading training dataset...")
 
 # Load dataset
-df = pd.read_csv("datasets/ml/training_data.csv")
+df = pd.read_csv(data_path)
 
-# Remove missing values
-df = df.dropna()
 
-print("Dataset loaded successfully!")
+# Separate features and target
+X = df.drop("energy_output", axis=1)
+y = df["energy_output"]
 
-# Features
-X = df[["T2M", "RH2M"]]
 
-# Target
-y = df["ALLSKY_SFC_SW_DWN"]
+print("Features used:")
+print(X.columns.tolist())
 
-# -----------------------------
-# Dataset Split
-# 70% Train
-# 15% Validation
-# 15% Test
-# -----------------------------
 
-X_train, X_temp, y_train, y_temp = train_test_split(
+# Split dataset
+X_train, X_test, y_train, y_test = train_test_split(
     X,
     y,
-    test_size=0.30,
+    test_size=0.2,
     random_state=42
 )
 
-X_val, X_test, y_val, y_test = train_test_split(
-    X_temp,
-    y_temp,
-    test_size=0.50,
-    random_state=42
-)
 
-print(f"Training samples: {len(X_train)}")
-print(f"Validation samples: {len(X_val)}")
-print(f"Testing samples: {len(X_test)}")
+print("Training Random Forest model...")
 
-# -----------------------------
-# Train Decision Tree
-# -----------------------------
 
-print("\nTraining Decision Tree...")
-
-dt_model = DecisionTreeRegressor(random_state=42)
-dt_model.fit(X_train, y_train)
-
-print("Decision Tree trained successfully!")
-
-# -----------------------------
-# Train Random Forest
-# -----------------------------
-
-print("\nTraining Random Forest...")
-
-rf_model = RandomForestRegressor(
+# Create Random Forest Regression model
+model = RandomForestRegressor(
     n_estimators=100,
-    random_state=42
+    random_state=42,
+    n_jobs=-1
 )
 
-rf_model.fit(X_train, y_train)
 
-print("Random Forest trained successfully!")
+# Train model
+model.fit(
+    X_train,
+    y_train
+)
 
-# -----------------------------
-# Training Performance
-# -----------------------------
 
-dt_train_pred = dt_model.predict(X_train)
-rf_train_pred = rf_model.predict(X_train)
+print("Model training completed!")
 
-dt_train_r2 = r2_score(y_train, dt_train_pred)
-rf_train_r2 = r2_score(y_train, rf_train_pred)
 
-# -----------------------------
-# Validation Performance
-# -----------------------------
+# Make predictions
+y_pred = model.predict(X_test)
 
-dt_val_pred = dt_model.predict(X_val)
-rf_val_pred = rf_model.predict(X_val)
 
-dt_mae = mean_absolute_error(y_val, dt_val_pred)
-dt_rmse = mean_squared_error(y_val, dt_val_pred) ** 0.5
-dt_r2 = r2_score(y_val, dt_val_pred)
+# Evaluation metrics
+mae = mean_absolute_error(
+    y_test,
+    y_pred
+)
 
-rf_mae = mean_absolute_error(y_val, rf_val_pred)
-rf_rmse = mean_squared_error(y_val, rf_val_pred) ** 0.5
-rf_r2 = r2_score(y_val, rf_val_pred)
+rmse = np.sqrt(
+    mean_squared_error(
+        y_test,
+        y_pred
+    )
+)
 
-# -----------------------------
-# Results
-# -----------------------------
+r2 = r2_score(
+    y_test,
+    y_pred
+)
 
-print("\n========== TRAINING RESULTS ==========")
-print("Decision Tree Training R2 :", dt_train_r2)
-print("Random Forest Training R2:", rf_train_r2)
 
-print("\n========== VALIDATION RESULTS ==========")
+print("\nModel Performance:")
+print("-------------------")
+print("MAE:", mae)
+print("RMSE:", rmse)
+print("R² Score:", r2)
 
-print("\nDecision Tree")
-print("MAE :", dt_mae)
-print("RMSE:", dt_rmse)
-print("R2  :", dt_r2)
 
-print("\nRandom Forest")
-print("MAE :", rf_mae)
-print("RMSE:", rf_rmse)
-print("R2  :", rf_r2)
+# Create folder if not available
+os.makedirs(
+    "backend/app/ml",
+    exist_ok=True
+)
 
-# -----------------------------
-# Save Best Model
-# -----------------------------
 
-joblib.dump(rf_model, "backend/app/ml/random_forest_model.pkl")
+# Save trained model
+joblib.dump(
+    model,
+    model_path
+)
 
-print("\nBest model (Random Forest) saved successfully!")
+
+print("\nModel saved successfully!")
+print("Saved location:", model_path)
