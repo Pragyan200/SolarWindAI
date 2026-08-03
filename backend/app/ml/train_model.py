@@ -1,34 +1,28 @@
 import pandas as pd
+import numpy as np
 import os
 import joblib
-import numpy as np
 
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+from xgboost import XGBRegressor
 
 
 # Dataset path
 data_path = "datasets/ml/training_data.csv"
-
-# Model save path
-model_path = "backend/app/ml/random_forest_energy_model.pkl"
-
 
 print("Loading training dataset...")
 
 # Load dataset
 df = pd.read_csv(data_path)
 
-
 # Separate features and target
 X = df.drop("energy_output", axis=1)
 y = df["energy_output"]
 
-
 print("Features used:")
 print(X.columns.tolist())
-
 
 # Split dataset
 X_train, X_test, y_train, y_test = train_test_split(
@@ -38,71 +32,65 @@ X_train, X_test, y_train, y_test = train_test_split(
     random_state=42
 )
 
+# -----------------------------
+# Random Forest Regressor
+# -----------------------------
+print("\nTraining Random Forest Regressor...")
 
-print("Training Random Forest model...")
-
-
-# Create Random Forest Regression model
-model = RandomForestRegressor(
+rf_model = RandomForestRegressor(
     n_estimators=100,
     random_state=42,
     n_jobs=-1
 )
 
+rf_model.fit(X_train, y_train)
 
-# Train model
-model.fit(
-    X_train,
-    y_train
+rf_pred = rf_model.predict(X_test)
+
+rf_mae = mean_absolute_error(y_test, rf_pred)
+rf_rmse = np.sqrt(mean_squared_error(y_test, rf_pred))
+rf_r2 = r2_score(y_test, rf_pred)
+
+# -----------------------------
+# XGBoost Regressor
+# -----------------------------
+print("Training XGBoost Regressor...")
+
+xgb_model = XGBRegressor(
+    n_estimators=100,
+    learning_rate=0.1,
+    max_depth=6,
+    random_state=42
 )
 
+xgb_model.fit(X_train, y_train)
 
-print("Model training completed!")
+xgb_pred = xgb_model.predict(X_test)
 
+xgb_mae = mean_absolute_error(y_test, xgb_pred)
+xgb_rmse = np.sqrt(mean_squared_error(y_test, xgb_pred))
+xgb_r2 = r2_score(y_test, xgb_pred)
 
-# Make predictions
-y_pred = model.predict(X_test)
-
-
-# Evaluation metrics
-mae = mean_absolute_error(
-    y_test,
-    y_pred
-)
-
-rmse = np.sqrt(
-    mean_squared_error(
-        y_test,
-        y_pred
-    )
-)
-
-r2 = r2_score(
-    y_test,
-    y_pred
-)
+# -----------------------------
+# Comparison Table
+# -----------------------------
+print("\nModel Comparison")
+print("-" * 65)
+print(f"{'Model':<25}{'MAE':<12}{'RMSE':<12}{'R2 Score'}")
+print("-" * 65)
+print(f"{'Random Forest':<25}{rf_mae:<12.4f}{rf_rmse:<12.4f}{rf_r2:.4f}")
+print(f"{'XGBoost':<25}{xgb_mae:<12.4f}{xgb_rmse:<12.4f}{xgb_r2:.4f}")
+print("-" * 65)
 
 
-print("\nModel Performance:")
-print("-------------------")
-print("MAE:", mae)
-print("RMSE:", rmse)
-print("R² Score:", r2)
 
+# Create folder if it doesn't exist
+os.makedirs("backend/app/ml", exist_ok=True)
 
-# Create folder if not available
-os.makedirs(
-    "backend/app/ml",
-    exist_ok=True
-)
+# Save the selected model
+model_path = "backend/app/ml/random_forest_energy_model.pkl"
 
+joblib.dump(rf_model, model_path)
 
-# Save trained model
-joblib.dump(
-    model,
-    model_path
-)
-
-
-print("\nModel saved successfully!")
+print("\nSelected model saved successfully!")
 print("Saved location:", model_path)

@@ -76,7 +76,7 @@ class AnalysisPipeline:
     "average_pixel_value": 105.462166
 }
 
-        ml_prediction = predict_energy(ml_features)
+
         
 
 

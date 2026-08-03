@@ -7,7 +7,7 @@ import pandas as pd
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MODEL_PATH = os.path.join(
     BASE_DIR,
-    "best_energy_model.pkl"
+    "random_forest_energy_model.pkl"
 )
 
 
