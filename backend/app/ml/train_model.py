@@ -45,6 +45,22 @@ rf_model = RandomForestRegressor(
 
 rf_model.fit(X_train, y_train)
 
+# Feature Importance
+feature_importance = rf_model.feature_importances_
+
+importance_df = pd.DataFrame({
+    "Feature": X_train.columns,
+    "Importance": feature_importance
+})
+
+importance_df = importance_df.sort_values(
+    by="Importance",
+    ascending=False
+)
+
+print("\nFeature Importance:")
+print(importance_df)
+
 rf_pred = rf_model.predict(X_test)
 
 rf_mae = mean_absolute_error(y_test, rf_pred)
