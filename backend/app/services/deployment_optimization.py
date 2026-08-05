@@ -12,24 +12,6 @@ def recommend_deployment(site_score, solar_score, wind_score):
 
 
 
-
-
-def recommend_capacity(land_area, resource_score):
-    """
-    Estimate recommended installation capacity (MW).
-    """
-
-    if land_area >= 100 and resource_score >= 80:
-        return 100
-    elif land_area >= 50 and resource_score >= 70:
-        return 50
-    elif land_area >= 20:
-        return 20
-    else:
-        return 5
-
-
-
 def recommend_capacity(land_area, resource_score):
     """
     Estimate recommended installation capacity (MW).
