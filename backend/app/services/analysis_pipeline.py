@@ -19,7 +19,12 @@ class AnalysisPipeline:
         latitude: float,
         longitude: float,
         land_area: float,
-        available_land: float
+        available_land: float,
+        restricted_land: bool,
+        slope: float,
+        distance_to_grid: float,
+        distance_to_road: float,
+        accessibility: str
     ):
 
         # Solar features
@@ -40,26 +45,7 @@ class AnalysisPipeline:
             economic=75
         )
 
-        # Deployment optimization
-        deployment_plan = generate_deployment_plan(
-            site_score=overall_score["overall_score"],
-            solar_score=85,
-            wind_score=wind_result["wind_speed"],
-            land_area=land_area,
-            available_land=available_land
-        )
-
-        # Energy estimation
-        energy_estimation = estimate_energy(
-            site_result="Suitable",
-            deployment_type=deployment_plan["recommended_technology"].replace(
-                " Deployment",
-                ""
-            ),
-            installed_capacity=deployment_plan["recommended_capacity"]
-        )
-
-        # ML Prediction Features
+        # ML prediction features
         ml_features = {
             "ALLSKY_SFC_SW_DWN": solar_features["solar_irradiance"],
             "T2M": solar_features["temperature"],
@@ -77,28 +63,64 @@ class AnalysisPipeline:
 
         # Technical feasibility evaluation
         feasibility_result = self.feasibility_engine.evaluate({
-    "restricted_land": False,
-    "slope": 12,
-    "land_area": land_area,
-    "distance_to_grid": max(2, 10 - land_area),
-    "distance_to_road": max(1, 6 - available_land),
-    "accessibility": (
-        "high"
-        if available_land >= 8
-        else "medium"
-        if available_land >= 4
-        else "low"
-    )
-})
+            "restricted_land": restricted_land,
+            "slope": slope,
+            "land_area": land_area,
+            "distance_to_grid": distance_to_grid,
+            "distance_to_road": distance_to_road,
+            "accessibility": accessibility
+        })
+
+        # Deployment recommendation is generated AFTER feasibility evaluation
+        if feasibility_result["technical_feasibility"]:
+
+            deployment_plan = generate_deployment_plan(
+                site_score=overall_score["overall_score"],
+                solar_score=85,
+                wind_score=wind_result["wind_speed"],
+                land_area=land_area,
+                available_land=available_land
+            )
+
+            # Energy yield estimation
+            # Executed only after technical feasibility validation
+            energy_estimation = estimate_energy(
+                site_result="Suitable",
+                deployment_type=deployment_plan[
+                    "recommended_technology"
+                ].replace(" Deployment", ""),
+                installed_capacity=deployment_plan[
+                    "recommended_capacity"
+                ],
+                solar_capacity_factor=0.20,
+                wind_capacity_factor=0.35,
+                system_efficiency=0.90
+            )
+
+        else:
+
+            deployment_plan = {
+                "recommendation": "Site is not technically feasible"
+            }
+
+            energy_estimation = {
+                "status": "Skipped because site is not technically feasible"
+            }
 
         return {
             "solar_features": solar_features,
             "wind_result": wind_result,
             "overall_score": overall_score,
-            "deployment_plan": deployment_plan,
-            "energy_estimation": energy_estimation,
             "ml_energy_prediction": ml_prediction,
-            "technical_feasibility": feasibility_result["technical_feasibility"],
-            "feasibility_score": feasibility_result["feasibility_score"],
-            "constraint_summary": feasibility_result["constraint_summary"]
+            "technical_feasibility": feasibility_result[
+                "technical_feasibility"
+            ],
+            "feasibility_score": feasibility_result[
+                "feasibility_score"
+            ],
+            "constraint_summary": feasibility_result[
+                "constraint_summary"
+            ],
+            "deployment_plan": deployment_plan,
+            "energy_estimation": energy_estimation
         }
