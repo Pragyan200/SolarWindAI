@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from app.api.home import router as home_router
 from app.api.projects import router as projects_router
 from app.api.sites import router as sites_router
@@ -12,6 +13,13 @@ from app.database.database import Base,engine
 from app.models.project import Project
 
 app=FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 Base.metadata.create_all(bind=engine)
 
